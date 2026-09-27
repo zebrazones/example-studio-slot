@@ -1,0 +1,13 @@
+---
+description: StudioSlots project conventions
+globs: ["src/**/*.ts", "src/**/*.tsx"]
+alwaysApply: true
+---
+
+- Next.js 15 App Router, TypeScript strict, Tailwind v4.
+- Database access only through `@/lib/db` (Prisma). Never instantiate PrismaClient elsewhere.
+- API routes live in `src/app/api/**/route.ts`, validate input with zod schemas from `@/lib/validators`.
+- Wrap route handlers in try/catch and return errors via `handleApiError` from `@/lib/api`.
+- Auth is cookie sessions from `@/lib/auth` (`getCurrentUser`, `requireUser`, `requireStaff`).
+- Members can only see and change their own bookings. Staff manage classes.
+- Keep components small; client components only where interactivity is needed.

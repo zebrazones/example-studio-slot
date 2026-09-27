@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  STAFF
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now())
+
+  sessions    Session[]
+  bookings    Booking[]
+  resetTokens PasswordResetToken[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StudioClass {
+  id          String   @id @default(cuid())
+  title       String
+  instructor  String
+  room        String
+  startsAt    DateTime
+  durationMin Int
+  capacity    Int
+  createdAt   DateTime @default(now())
+
+  bookings Booking[]
+
+  @@index([startsAt])
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  userId    String
+  classId   String
+  status    BookingStatus @default(CONFIRMED)
+  createdAt DateTime      @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class StudioClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, classId])
+}
