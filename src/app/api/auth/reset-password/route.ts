@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createSession, hashPassword, hashToken } from "@/lib/auth";
 import { handleApiError } from "@/lib/api";
-import { rateLimit } from "@/lib/rate-limit";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { resetPasswordSchema } from "@/lib/validators";
 
 export async function POST(req: Request) {
-  const limited = rateLimit(req, "reset-password", 10, 15 * 60 * 1000);
+  const limited = rateLimit(`reset-password:${clientIp(req)}`, 10, 15 * 60 * 1000);
   if (limited) return limited;
 
   try {

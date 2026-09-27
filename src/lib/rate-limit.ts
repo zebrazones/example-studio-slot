@@ -3,20 +3,35 @@ import { NextResponse } from "next/server";
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
+const MAX_BUCKETS = 10_000;
 
-function clientIp(req: Request) {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+/**
+ * Client IP as seen by our reverse proxy. `x-real-ip` is set by the proxy itself;
+ * otherwise use the last X-Forwarded-For hop, the one our proxy appended. Earlier
+ * entries are whatever the client chose to send.
+ */
+export function clientIp(req: Request) {
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+  const hops = req.headers.get("x-forwarded-for")?.split(",").map((h) => h.trim()).filter(Boolean);
+  return hops?.at(-1) ?? "unknown";
+}
+
+function sweep(now: number) {
+  for (const [key, bucket] of buckets) {
+    if (bucket.resetAt < now) buckets.delete(key);
+  }
 }
 
 /**
- * Fixed-window limiter keyed by route + client IP. In-memory is fine for a single
- * instance; move to Redis/Upstash if we ever run more than one.
+ * Fixed-window limiter. In-memory is fine for a single instance; move to
+ * Redis/Upstash if we ever run more than one.
  */
-export function rateLimit(req: Request, name: string, limit: number, windowMs: number) {
-  const key = `${name}:${clientIp(req)}`;
+export function rateLimit(key: string, limit: number, windowMs: number) {
   const now = Date.now();
-  const bucket = buckets.get(key);
+  if (buckets.size > MAX_BUCKETS) sweep(now);
 
+  const bucket = buckets.get(key);
   if (!bucket || bucket.resetAt < now) {
     buckets.set(key, { count: 1, resetAt: now + windowMs });
     return null;
