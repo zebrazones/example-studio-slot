@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -12,12 +13,17 @@ const templates = [
 ];
 
 async function main() {
-  const passwordHash = await bcrypt.hash("studio-owner-demo", 12);
+  const ownerPassword = process.env.SEED_OWNER_PASSWORD ?? randomBytes(12).toString("base64url");
+  const passwordHash = await bcrypt.hash(ownerPassword, 12);
   await prisma.user.upsert({
     where: { email: "owner@studioslots.app" },
     update: {},
     create: { email: "owner@studioslots.app", name: "Studio Owner", passwordHash, role: "STAFF" },
   });
+
+  if (!process.env.SEED_OWNER_PASSWORD) {
+    console.log(`Created staff login owner@studioslots.app with password: ${ownerPassword}`);
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

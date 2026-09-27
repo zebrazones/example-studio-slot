@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createSession, verifyPassword } from "@/lib/auth";
 import { handleApiError } from "@/lib/api";
+import { rateLimit } from "@/lib/rate-limit";
 import { signInSchema } from "@/lib/validators";
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "signin", 10, 15 * 60 * 1000);
+  if (limited) return limited;
+
   try {
     const { email, password } = signInSchema.parse(await req.json());
 

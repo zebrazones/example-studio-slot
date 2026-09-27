@@ -13,11 +13,11 @@ You need Node.js 20+ and a PostgreSQL database.
 npm install
 cp .env.example .env   # set DATABASE_URL
 npm run db:push
-npm run db:seed        # two weeks of classes and a staff account: owner@studioslots.app / studio-owner-demo
+npm run db:seed        # two weeks of classes and a staff account (owner@studioslots.app, password printed once)
 npm run dev
 ```
 
-The app runs on http://localhost:3000. Without `RESEND_API_KEY`, password reset links are printed to the server console.
+The app runs on http://localhost:3000. In development without `RESEND_API_KEY`, password reset emails are printed to the server console.
 
 ## About the audit
 

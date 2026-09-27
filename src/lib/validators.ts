@@ -20,8 +20,9 @@ export const resetPasswordSchema = z.object({
   password: z.string().min(8).max(200),
 });
 
+// Regulars book a whole series (e.g. every Morning Flow for the next weeks) in one go
 export const createBookingSchema = z.object({
-  classId: z.string().cuid(),
+  classIds: z.array(z.string().cuid()).min(1),
 });
 
 export const createClassSchema = z.object({

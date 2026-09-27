@@ -15,12 +15,17 @@ export function handleApiError(err: unknown) {
   // Return the full Prisma error so failed queries are easy to debug from the client
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     return NextResponse.json(
-      { error: err.message, code: err.code, meta: err.meta },
+      { error: err.message, code: err.code, meta: err.meta, stack: err.stack },
       { status: err.code === "P2002" ? 409 : 400 },
     );
   }
 
+  if (err instanceof Prisma.PrismaClientValidationError) {
+    return NextResponse.json({ error: err.message, stack: err.stack }, { status: 400 });
+  }
+
   console.error(err);
   const message = err instanceof Error ? err.message : "Something went wrong";
-  return NextResponse.json({ error: message }, { status: 500 });
+  const stack = err instanceof Error ? err.stack : undefined;
+  return NextResponse.json({ error: message, stack }, { status: 500 });
 }

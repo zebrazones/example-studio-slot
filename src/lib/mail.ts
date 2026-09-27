@@ -3,7 +3,10 @@ const RESEND_URL = "https://api.resend.com/emails";
 export async function sendPasswordResetEmail(to: string, link: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.log(`[mail] Password reset link for ${to}: ${link}`);
+    if (process.env.NODE_ENV !== "development") {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+    console.log(`[mail] (dev) Password reset email for ${to}: ${link}`);
     return;
   }
 

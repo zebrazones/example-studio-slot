@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateToken, hashToken } from "@/lib/auth";
 import { handleApiError } from "@/lib/api";
+import { rateLimit } from "@/lib/rate-limit";
 import { sendPasswordResetEmail } from "@/lib/mail";
 import { forgotPasswordSchema } from "@/lib/validators";
 
@@ -9,6 +10,9 @@ import { forgotPasswordSchema } from "@/lib/validators";
 const RESET_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "forgot-password", 5, 60 * 60 * 1000);
+  if (limited) return limited;
+
   try {
     const { email } = forgotPasswordSchema.parse(await req.json());
 
