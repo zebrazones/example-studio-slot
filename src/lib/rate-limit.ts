@@ -6,11 +6,13 @@ const buckets = new Map<string, Bucket>();
 const MAX_BUCKETS = 10_000;
 
 /**
- * Client IP as seen by our reverse proxy. `x-real-ip` is set by the proxy itself;
- * otherwise use the last X-Forwarded-For hop, the one our proxy appended. Earlier
- * entries are whatever the client chose to send.
+ * Client IP as seen by our reverse proxy. Only trusted when TRUST_PROXY=1, i.e. the
+ * app runs behind a proxy that overwrites these headers; otherwise any client could
+ * set them. Without a trusted proxy all callers share one bucket, which fails safe.
  */
 export function clientIp(req: Request) {
+  if (process.env.TRUST_PROXY !== "1") return "untrusted";
+
   const realIp = req.headers.get("x-real-ip")?.trim();
   if (realIp) return realIp;
   const hops = req.headers.get("x-forwarded-for")?.split(",").map((h) => h.trim()).filter(Boolean);

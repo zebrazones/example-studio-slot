@@ -11,13 +11,13 @@ You need Node.js 20+ and a PostgreSQL database.
 
 ```bash
 npm install
-cp .env.example .env   # set DATABASE_URL
+cp .env.example .env   # set DATABASE_URL and SEED_OWNER_PASSWORD
 npm run db:push
-npm run db:seed        # two weeks of classes and a staff account (owner@studioslots.app, password printed once)
+npm run db:seed        # two weeks of classes and a staff account: owner@studioslots.app
 npm run dev
 ```
 
-The app runs on http://localhost:3000. In development without `RESEND_API_KEY`, password reset emails are printed to the server console.
+The app runs on http://localhost:3000. In development without `RESEND_API_KEY`, password reset emails are printed to the server console. Set `TRUST_PROXY=1` only when the app runs behind a proxy that sets `x-real-ip` (Vercel, nginx); otherwise rate limits ignore client IP headers.
 
 ## About the audit
 
